@@ -1,0 +1,199 @@
+---
+title: "Matrix Algebra Homework"
+author: "Somesh Bagadiya"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+NOTE: Please do not use any of these functions - stats::prcomp(), FactoMiner::PCA(), ade4::dudi.pca(), ExPosition::epPCA() for completing this homework. You may use these functions to cross check your answers. 
+
+## Question 1
+
+Consider the inbuilt dataset `vcd::Baseball`. You can use `help()` function to learn more about the data.
+
+### Task 0: Identify categorical and numeric variables. Keep only the numeric variables in the dataset.
+
+```{r }
+# Include necessary libraries
+library(tidyverse)
+library(vcd)
+
+# Import data
+indata <- vcd::Baseball
+head(indata)
+
+# Include only numeric variables. We want to keep the name and make that as row names for the dataset
+indata_ <- indata[,-which(sapply(indata, class) == "factor")]
+head(indata_)
+
+# Concatenating first and last name
+indata_ <- indata_ %>% unite("fname_lname", c("name1", "name2")) 
+head(indata_)
+# Making name as row name instead of a column in the dataset
+rownames(indata_) <- indata_[,1]
+
+# Removing extra column
+head(indata_)
+indata_ <- indata_[, -c(1)]
+
+head(indata_)
+```
+
+We are using the names of the player as the row name instead of the sr.no and removing the extra columns of first and last name.
+
+### Task 1: Generate the covariance matrix of the numeric variables. What can you say about the variables in the data
+
+```{r }
+indata_cleaned <- na.omit(indata_)
+#indata_cleaned <- indata_cleaned[!apply(is.infinite(indata_cleaned), 1, any),]
+indata_cleaned <- scale(indata_cleaned)
+cov_mat <- cov(indata_cleaned)
+print(cov_mat)
+```
+
+I am first cleaning the data i.e remove any null values from the data set that may affect the compute of the covariance matrix. After that I used cov() function on the numeric values to compute the covariance matrix for the data. From the covariance matrix we can conclude that some columns are negatively correlated like years and runs i.e as years go high and runs goe low, while others are positively correlated like hits and home runs i.e as number of hits increase, home runs will also increase.
+
+
+### Task 2: Check if the covariance matrix is orthogonal
+
+```{r }
+
+cov_mat_trans = t(cov_mat)
+res1 <- cov_mat_trans %*% cov_mat
+res2 <- cov_mat %*% cov_mat_trans
+no_of_rows <- nrow(cov_mat)
+identity_mat <- diag(no_of_rows)
+
+if(identical(res1,identity_mat) || identical(res2,identity_mat)){
+  print(TRUE)
+}else{
+  print(FALSE)
+}
+
+```
+The covariance matrix is not orthogonal, we have confirmed this by multiplying the covariance matrix by its own transpose. An orthogonal matrix should give us an Identical matrix when multiplied by its own transpose.
+
+### Task 3: Compute the eigenvalues and eigenvectors for covariance matrix. What did you observe from your analysis? 
+
+```{r }
+eigen_res <- eigen(cov_mat)
+values <- eigen_res$values
+vectors <- eigen_res$vectors
+values
+vectors
+```
+Here I have calculated the eigen values and the eigen vectors of the dataset, these values can be used to understand amount of variance explained by each principal component. Larger eigen values indicate more variance in corredponding data. Eigen vectors provides insights into the pattern or structures in the data that contribute most to the variance. The atbat column contributes most to the variance of the data.
+
+### Task 4: Find the squareroot of the covariance matrix using the spectral decomposition method
+
+```{r }
+sqrt_values <- sqrt(values)
+diag_sqrt <- diag(sqrt_values)
+cov_sqrt <- vectors %*% diag_sqrt %*% t(vectors)
+cov_sqrt
+```
+
+Computing the squareroot of the covariance matrix using the spectral decomposition method will help us to easily control the data and this may even help us linearizing relationships, reducing skewness, and stabilizing variances.
+
+### Task 5: Based on the eigen decomposition in task 3, determine how many principal components you would select to reduce number of original features yet capture atleast 85% of the variability in the data? 
+
+```{r }
+total_variance <- sum(values)
+variance_proportion <- values / total_variance
+
+cumulative_variance <- cumsum(variance_proportion)
+
+min_components <- which(cumulative_variance >= 0.85)[1]
+min_components
+
+```
+We will need 4 principal components to reduce dimensionality while capturing at least 85% of the variability in our data. From the scree plot we can confirm that the bend is at 4 PC and from the cummulative we can confirm that when the cummulative is at 85% the PC is 4.
+
+
+### Task 6: Compute the principal component vectors based on your selection in task 5. Comment on your interpretation of the PCs
+
+```{r }
+selected_eigenvectors <- vectors[, 1:min_components]
+principal_components <- indata_cleaned %*% selected_eigenvectors
+principal_components
+```
+Here higher values of the variable are associated with higher values of the principal components (PC), while negative indicate the opposite. Since the PC's are orthogonal each PC will represent unique pattern of the variation in the data.
+
+### Task 7: Perform task 1 to 6 using correlation matrix. Compare the results with the ones obtained from covariance matrix. Do the interpretation of the components differ?
+
+```{r }
+# Task 1
+cor_mat <- cor(indata_cleaned)
+cor_mat
+```
+
+I have generated the correlation matrix, 1 indicates perfect positive relationship, -1 indicates negative relationship and 0 indicates non linear relationship
+
+```{r }
+# Task 2
+cor_mat_trans = t(cor_mat)
+res1_cor <- cor_mat_trans %*% cor_mat
+res2_cor <- cor_mat %*% cor_mat_trans
+no_of_rows <- nrow(cor_mat)
+identity_mat <- diag(no_of_rows)
+if(identical(res1_cor,identity_mat) || identical(res2_cor,identity_mat)){
+  print(TRUE)
+}else{
+  print(FALSE)
+}
+
+```
+
+The correlation matrix is not orthogonal by default as it explain the relationship between variables.
+
+```{r }
+
+# Task 3
+eigen_res_cor <- eigen(cor_mat)
+values_cor <- eigen_res_cor$values
+vectors_cor <- eigen_res_cor$vectors
+values_cor
+vectors_cor
+```
+
+The eigen values will only represent the linear relationship in the data and the eigen vectors are same.
+
+```{r }
+# Task 4
+sqrt_values_cor <- sqrt(values_cor)
+diag_sqrt_cor <- diag(sqrt_values_cor)
+cov_sqrt_cor <- vectors_cor %*% diag_sqrt_cor %*% t(vectors_cor)
+cov_sqrt_cor
+
+```
+
+Since the correlation matrix is not orthogonal computing the square root using spectral decomposition doesn't provide any specific benefits
+
+```{r }
+
+# Task 5
+total_variance_cor <- sum(values_cor)
+variance_proportion_cor <- values_cor / total_variance_cor
+cumulative_variance_cor <- cumsum(variance_proportion_cor)
+min_components_cor <- which(cumulative_variance_cor >= 0.85)[1]
+min_components_cor
+
+```
+
+Minimum principal components are 4, they represent the linear relationship insted of variance of the data.
+
+```{r }
+
+# Task 6
+selected_eigenvectors_cor <- vectors_cor[, 1:min_components_cor]
+principal_components_cor <- indata_cleaned %*% selected_eigenvectors_cor
+principal_components_cor
+```
+
+This represents maximum correlation between the variables which can be used to identify underlying patterns between variables.
+
+In general, when we use correlation instead of covariance we are emphasizing on the linear relationships between the data instead of the variance of the data.

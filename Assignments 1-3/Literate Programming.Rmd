@@ -50,8 +50,6 @@ head(indata_cleaned)
 
 Storing country names and indicator name as a factor and then deleting it from the loaded data to clean the data
 
-
-
 ```{r}
 
 # Pivot to long dataset

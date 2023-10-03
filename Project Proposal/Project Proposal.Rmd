@@ -1,0 +1,83 @@
+---
+title: "Project Proposal"
+author: "Somesh Bagadiya"
+date: "2023-10-02"
+output: html_document
+---
+INTRODUCTION
+
+1. Why did you pick this dataset and what are you curious to know from the data?
+- I have a keen interest in the field of technology and gadgets, specifically laptops in this case. Working with this data will help me gain valuable knowledge regarding how laptops are categorized based on their specifications, how they are priced, which laptop is suitable for a particular user, which brand is more expensive, which brand is more affordable, and so on. The data comprises a combination of specifications and categorical information.
+
+
+
+DATA
+
+1. Data source: Include the citation for your data, and provide a link to the source.
+- This data is available on Kaggle, below is the link to the dataset
+  https://www.kaggle.com/datasets/kuchhbhi/latest-laptop-price-list
+
+
+
+2. Data collection: Context on how the data was collected?
+- The author scrapped the data from flipkart.com, they used an automated chrome web extension tool called Instant Data Scrapper to gather the data.
+
+
+
+3. Cases: What are the cases (units of observation or experiment)? What do the rows represent in your dataset?
+- Each rows represent laptop specifications like Brand Name, Processor, Processor Type, RAM etc.
+
+
+
+4. Variables: What are the variables you will be studying?
+- brand: Categorical (Text)   
+model: Categorical (Text)    
+processor_brand: Categorical (Text)   
+processor_name: Categorical (Text)  
+processor_gnrtn: Categorical (Text)  
+ram_gb: Numerical   
+ram_type: Categorical (Text)   
+ssd: Numerical    
+hdd: Numerical    
+os: Categorical (Text)     
+os_bit: Numerical    
+graphic_card_gb: Numerical    
+weight: Numerical    
+display_size: Numerical    
+warranty: Numerical    
+Touchscreen: Categorical (Text)    
+msoffice: Categorical (Text)    
+latest_price: Numerical    
+star_rating: Numerical
+ratings	reviews: Numerical    
+
+
+
+5. Type of study
+- This is an observational study.
+
+```{r}
+library(dplyr)
+
+data <- read.csv("./Laptop_Data.csv")
+head(data)
+dim(data)
+```
+
+```{r cars}
+data <- distinct(data)
+data <- na.omit(data)
+summary(data)
+dim(data)
+```
+
+DATA QUALITY
+
+- Removed Null values if any
+- Removed duplicate rows if any
+- No data format issues
+
+REFRENCES:      
+Flipkart.com - https://www.flipkart.com/         
+Kaggle.com - https://www.kaggle.com/datasets/kuchhbhi/latest-laptop-price-list        
+Instant Data Scraper - https://chrome.google.com/webstore/detail/instant-data-scraper/ofaokhiedipichpaobibbnahnkdoiiah        

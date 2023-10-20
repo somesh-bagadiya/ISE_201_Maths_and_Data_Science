@@ -1,0 +1,114 @@
+---
+title: "FA 23 ISE 201 Probability Homework"
+author: "Somesh Bagadiya"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(kableExtra)
+```
+
+## QUESTION 1
+
+Historical data indicate that the starting salary for a new graduate in a leading tech company can be modeled using a Normal distribution with mean $90,000 and standard deviation $20,000. Suppose that second-year salaries increase by exactly 20%. Also, suppose that the bonus each year can be modeled using a Normal distribution with mean $25,000 and standard deviation $5,000. Suppose that the bonus is independent of the initial salary (and is also independent of the annual salary increase).
+
+> What is the expected annual compensation (salary plus bonus) for a new hire?
+
+```{r}
+sal_mean <- 90000
+bonus_mean <- 25000
+
+new_hire_sal <- sal_mean + bonus_mean
+new_hire_sal
+```
+The expected annual compensation must be mean salary plus the mean bonus as per the data.
+
+> What is the standard deviation of the annual compensation for a new hire?
+
+```{r}
+sal_sd <- 20000
+bonus_sd <- 5000
+
+new_hire_sd <- sqrt(sal_sd**2 + bonus_sd**2)
+new_hire_sd
+```
+
+To find total standard deviation we need to calculate the variance of the data, add them and take a square root of it. To calculate variance we need to square the standard deviation of the data.
+
+> What is the expected annual compensation for an employee after completing one year at the firm, i.e., just after the salary increase is announced?
+
+```{r}
+one_year_sal <- sal_mean + sal_mean*0.2
+one_year_comp <- one_year_sal + bonus_mean
+one_year_comp
+```
+
+The salary increases by 20% after every year, and the bonus is independent of the salary increment, therefore salary can be calculated by the above mentioned equation. 
+
+> What is the standard deviation of an employee's annual compensation for an employee after completing one year at the firm, i.e., just after the salary increase is announced?
+
+```{r}
+one_year_sal_sd <- sal_sd + sal_sd*0.2
+one_year_sd <- sqrt(one_year_sal_sd**2 + bonus_sd**2)
+one_year_sd
+```
+We can find the standard deviation after one year in the same way as the task 2, we just have to factor in the new salary.
+
+> What is the probability that an employee's annual compensation after completing one year in the firm, i.e., just after the salary increase is announced, will exceed $140,000?
+
+```{r}
+prob_great_140k <- 1 - pnorm(140000, mean = one_year_comp, sd = one_year_sd)
+prob_great_140k
+```
+We need to find the probability of salary exceeding 140000 in the second year. For that we use pnorm function to compute the salary of people that have a salary up-to 140000. So the probab of salary higher than 140000 will be 1- of the value calculated.
+
+------
+## Question 2
+
+ An engineering statistics class has 40 students: 60% are EM, 10% are IE and 30% are AI. A sample of 4 students is selected randomly without replacement for a project team. Let X and Y denote the number of IE and AI majors in the sample, respectively.
+
+> 1. Determine $f_{XY}(X, Y)$ or joint probability distribution of $X$ and $Y$
+
+```{r}
+tot_stud <- 40
+
+prob_ai <- 0.3
+prob_ie <- 0.1
+prob_em <- 0.6
+
+nos_em <- tot_stud * prob_em
+nos_ie <- tot_stud * prob_ie
+nos_ai <- tot_stud * prob_ai
+
+jpd <- matrix(0, nrow = 5, ncol = 5)
+for (x in 0:4) {
+  for (y in 0:4) {
+    if(x+y<=4){
+      jpd[x + 1, y + 1] <- choose(nos_ie, x) * choose(nos_ai, y) * choose(nos_em, (4 - x - y)) / choose(tot_stud, 4)
+    }
+  }
+}
+jpd
+
+```
+This is the joint probability distribution for choosing maximum 4 students as AI or IE as their major. There can be Nc4 (can't type the combination properly) to pick 4 students at random from the total students. The Question asks for AI and IE students specifically, so there can be various combinations how we can fulfil the teams size requirement. Therefore we are computing the possible combinations of picking the AI and IE student to get a joint pobability distribution.
+
+> 2. Determine $f_X(x)$ or marginal probability distribution of $X$
+
+```{r}
+mpd <- rowSums(jpd)
+print(mpd)
+```
+To calculate the marginal probability of IE students we need to compute the sum of each row in the joint probability distribution.
+
+> 3. Determine $E(X)$
+
+```{r}
+X_val <- 0:4
+ex_X <- sum(X_val * mpd)
+ex_X
+```
+Expected value is a way to describe the center or "average" of a probability distribution, and can be computed by adding up all the marginal probability of the IE students.

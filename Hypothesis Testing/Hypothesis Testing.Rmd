@@ -1,0 +1,56 @@
+---
+title: "Hypothesis Testing"
+Author: Somesh Bagadiya
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+data = read.csv("./Laptop_Data.csv")
+any(is.na(data))
+```
+There are no NA values in the data set so no need to do null value testing
+```{r}
+duplicates <- duplicated(data)
+data <-  unique(data)
+data
+```
+There were few duplicate values that I removed.
+```{r}
+reference_price <- 73000
+t_test_result <- t.test(data$latest_price, mu = reference_price)
+print(t_test_result)
+hist(data$latest_price, main = "Price Distribution", xlab = "Price", breaks = 20, xaxt = "n")
+custom_breaks <- seq(0, max(data$latest_price), by = 500)
+axis(1, at = custom_breaks, labels = custom_breaks)
+```
+
+Null Hypothesis (H0): The average price of the products is equal to the reference value (e.g., Rs. 73k).
+
+
+Alternative Hypothesis (H1): The average price of the products is not equal to the reference value.
+
+
+Test statistic is given by the variable t and the Reference distribution is given by the following graph.
+The P-Value of the given distribution and the reference value 0.0381 is 73k, and the acceptable Alpha is 0.05. Therefore, We can reject the null hypothesis that The average price of the products is equal to the reference value (e.g., Rs. 73k).
+
+```{r}
+reference_price <- 3.2
+t_test_result <- t.test(data$star_rating, mu = reference_price)
+print(t_test_result)
+max_star_rating <- max(data$star_rating)
+hist(data$star_rating, main = "Star Ratings", xlab = "Star Ratings", breaks = seq(0, max_star_rating, by = 1))
+```
+
+
+
+
+Null Hypothesis (H0): The average star rating of the products is equal to the reference value (e.g., 3.2).
+
+
+Alternative Hypothesis (H1): The average star rating of the products is not equal to the reference value.
+
+
+Test statistic is given by the variable t and the Reference distribution is given by the following graph.
+The P-Value of the given distribution and the reference value 0.0033 is 3.2, and the acceptable Alpha is 0.05. Therefore, We can reject the null hypothesis that The average price of the products is equal to the reference value (e.g., 3.2)..

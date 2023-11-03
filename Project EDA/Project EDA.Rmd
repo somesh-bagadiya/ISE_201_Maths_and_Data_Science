@@ -1,0 +1,92 @@
+---
+title: "Project EDA"
+author: "Somesh Bagadiya"
+date: "2023-11-02"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+```{r}
+library(ggplot2)
+library(tinytex)
+```
+
+INTRODUCTION:
+
+I have a keen interest in the field of technology and gadgets, specifically laptops in this case. Working with this data will help me gain valuable knowledge regarding how laptops are categorized based on their specifications, how they are priced, which laptop is suitable for a particular user, which brand is more expensive, which brand is more affordable, and so on. The data comprises a combination of specifications and categorical information.
+
+```{r}
+data <- read.csv("./Laptop_Data.csv")
+head(data, 5)
+```
+
+DATA:
+
+Data Source:- This data is available on Kaggle, below is the link to the dataset https://www.kaggle.com/datasets/kuchhbhi/latest-laptop-price-list
+
+Data Collection:- The author scrapped the data from flipkart.com, they used an automated chrome web extension tool called Instant Data Scrapper to gather the data. It is a observational study.
+
+Units of observation:- Each row represents a laptop along with its specifications, current price, reviews, and ratings.
+
+No data cleanup required.
+
+Exploratory Data Analysis:
+
+```{r}
+summary(data)
+nrow(data)
+ncol(data)
+```
+
+```{r}
+numeric_columns <- sapply(data, is.numeric)
+
+# Print the results
+print(numeric_columns)
+print(sum(numeric_columns))
+print(sum(is.na(data)))
+print(sum(duplicated(data)))
+```
+
+Above is the summary of the data.
+There are a total of 896 rows.
+There are a total of 26 columns.
+There are 11 numeric columns out of 26.
+There are no null values in the data.
+There are 21 duplicate rows in the data.
+
+```{r}
+p <- ggplot(data, aes(x = `brand`, y = `latest_price`)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Laptop Brand", y = "Laptop Latest Price") +
+  ggtitle("Laptop Brands vs. Latest Price") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the plot
+print(p)
+```
+
+Above graph will show us brands with highest laptop price in rupees.
+
+```{r}
+avg_prices <- aggregate(latest_price ~ brand, data = data, FUN = mean)
+colnames(avg_prices) <- c("brand", "Average Price")
+
+p <- ggplot(avg_prices, aes(x = `brand`, y = `Average Price`)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Laptop Brand", y = "Average Price") +
+  ggtitle("Average Laptop Prices by Brand") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the plot
+print(p)
+
+```
+
+Above graph will show us brands with there average price in rupees.
+
+Questions for next stage:
+
+ 1. Is the average price of the products equal to the reference value Rs. 73k?
+ 2. Is the average star rating of the products equal to the reference value 3.2?

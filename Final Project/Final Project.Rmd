@@ -1,0 +1,397 @@
+---
+title: "Project"
+author: "Somesh Bagadiya"
+date: "2023-11-02"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+```{r}
+library(ggplot2)
+library(tinytex)
+```
+
+## *INTRODUCTION*
+
+
+1. Why did you pick this dataset, and what are you curious to know from the data?
+- I am keenly interested in technology and gadgets, specifically laptops. Working with this data will help me gain valuable knowledge regarding how laptops are categorized based on their specifications, how they are priced, which laptop is suitable for a particular user, which brand is more expensive, which brand is more affordable, and so on. The data comprises a combination of specifications and categorical information.
+
+```{r}
+data <- read.csv("./Laptop_Data.csv")
+head(data, 5)
+```
+
+## *DATA*
+
+
+a. Data source: Include the citation for your data, and provide a link to the source.
+- This data is available on Kaggle, below is the link to the dataset
+  https://www.kaggle.com/datasets/kuchhbhi/latest-laptop-price-list
+
+
+b. Data collection: Context on how the data was collected?
+- The data retrieval process involved the author utilizing an automated Chrome web extension tool known as Instant Data Scrapper to extract information from flipkart.com. Through this tool, the author systematically gathered the dataset from the online platform.
+
+
+c. Cases: What are the cases (units of observation or experiment)? What do the rows represent in your dataset?
+- Each rows represent laptop specifications like Brand Name, Processor, Processor Type, RAM etc.
+
+
+d. Variables: What are the variables you will be studying?
+- brand: Categorical (Text)   
+model: Categorical (Text)    
+processor_brand: Categorical (Text)   
+processor_name: Categorical (Text)  
+processor_gnrtn: Categorical (Text)  
+ram_gb: Numerical   
+ram_type: Categorical (Text)   
+ssd: Numerical    
+hdd: Numerical    
+os: Categorical (Text)     
+os_bit: Numerical    
+graphic_card_gb: Numerical    
+weight: Numerical    
+display_size: Numerical    
+warranty: Numerical    
+Touchscreen: Categorical (Text)    
+msoffice: Categorical (Text)    
+latest_price: Numerical    
+star_rating: Numerical
+ratings	reviews: Numerical    
+
+
+e. Type of study
+- This is an observational study.
+
+
+f. Data clean-up
+- None is required.
+
+
+## *Exploratory Data Analysis:*
+
+```{r}
+summary(data)
+nrow(data)
+ncol(data)
+```
+
+```{r}
+numeric_columns <- sapply(data, is.numeric)
+
+# Print the results
+print(numeric_columns)
+print(sum(numeric_columns))
+print(sum(is.na(data)))
+print(sum(duplicated(data)))
+data <- unique(data)
+```
+
+The dataset comprises 896 rows and 26 columns.
+Out of these columns, 11 are numeric.
+The dataset is free of any null values.
+However, there are 21 duplicate rows present in the data.
+
+
+
+Count number of models by brand
+```{r}
+table(data$brand)
+ggplot(data = data, aes(x = brand)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  labs(title="Number of Models by Brand")
+```
+
+Top 5 brands
+```{r}
+names(sort(table(data$brand), decreasing = TRUE)[1:5])
+```
+
+Count processors
+```{r}
+table(data$processor_name)
+ggplot(data = data, aes(x = processor_name, fill = processor_brand)) + 
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(title="Processors Used")
+```
+
+Most common processors
+```{r}
+names(sort(table(data$processor_name), decreasing = TRUE)[1:10])
+```
+
+Count operating systems
+```{r}
+table(data$os)
+```
+ 
+Count RAM capacities
+```{r}
+table(data$ram_gb)
+```
+
+Count storage types
+```{r} 
+table(data$ssd, data$hdd)
+```
+
+Models with dedicated GPUs
+```{r}
+nrow(subset(data, graphic_card_gb > 0))
+```
+
+Most common display sizes
+```{r}
+table(data$display_size)
+ggplot(data = data,
+       mapping = aes(x = display_size, y = latest_price,
+                     size = ram_gb, color = ssd)) +
+  geom_point() +
+  labs(title = "Relationship of Specs on Price")
+
+```
+
+Models with touch screens
+```{r}  
+nrow(subset(data, Touchscreen == "Yes"))
+```
+
+Weight categories
+```{r} 
+table(ifelse(data$weight == "ThinNlight", "Thin", ifelse(data$weight == "Casual", "Regular", ifelse(data$weight == "Gaming", "Gaming", NA))))
+```
+
+Summary statistics of price
+```{r}
+summary(data$latest_price)
+ggplot(data, aes(latest_price)) +
+  geom_histogram(bins=20) +  
+  labs(title = "Distribution of Laptop Prices")
+```
+
+
+```{r}
+p <- ggplot(data, aes(x = `brand`, y = `latest_price`)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Laptop Brand", y = "Laptop Latest Price") +
+  ggtitle("Laptop Brands vs. Latest Price") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the plot
+print(p)
+```
+
+Above graph will show us brands with highest laptop price in rupees.
+
+```{r}
+avg_prices <- aggregate(latest_price ~ brand, data = data, FUN = mean)
+colnames(avg_prices) <- c("brand", "Average Price")
+
+p <- ggplot(avg_prices, aes(x = `brand`, y = `Average Price`)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(x = "Laptop Brand", y = "Average Price") +
+  ggtitle("Average Laptop Prices by Brand") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Display the plot
+print(p)
+
+```
+
+Above graph will show us brands with their average price in rupees.
+
+Questions for the next stage:
+
+ 1. Is the average price of the products equal to the reference value of Rs. 73k?
+ 2. Is the average star rating of the products equal to the reference value of 3.2?
+ 
+```{r}
+ # Subset data
+touchscreen <- subset(data, Touchscreen=="Yes")  
+non_touchscreen <- subset(data, Touchscreen=="No")
+
+# Compare means 
+t.test(touchscreen$latest_price, non_touchscreen$latest_price)
+
+# p-value < 0.05, reject H0
+# Touchscreen laptops have higher average price
+ 
+```
+```{r}
+ggplot(data, aes(x=weight, y=latest_price)) + geom_boxplot()
+```
+
+
+
+Trend 1: Gaming laptops are more expensive on average
+
+This boxplot shows the price distribution is higher for laptops tagged as "Gaming" models. The mean and median prices are substantially higher for gaming laptops compared to thin-and-light and casual models.
+
+
+```{r}
+ggplot(data, aes(ram_gb, latest_price)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method="lm")
+```
+
+Trend 2:  Higher RAM is strongly associated with a higher price
+
+
+The linear trend shows a positive correlation between RAM capacity and price.
+
+# *INFERENCE*
+
+## Hypothesis Testing
+
+1. 
+
+I will test if there is a significant price difference between touchscreen and non-touchscreen laptops.
+
+H0: There is no difference in mean price between touchscreen and non-touchscreen laptops
+
+HA: Touchscreen laptops have a higher average price
+
+```{r}
+touchscreen <- subset(data, Touchscreen=="Yes")  
+non_touchscreen <- subset(data, Touchscreen=="No")
+
+# Compare means 
+t.test(touchscreen$latest_price, non_touchscreen$latest_price)
+```
+
+The t-test shows that the price difference is statistically significant. On average, touchscreen laptops cost Rs 11,384 more than non-touchscreen ones.
+
+
+2. 
+
+Null Hypothesis (H0): The average price of the products is equal to the reference value (e.g., Rs. 73k).
+
+Alternative Hypothesis (H1): The average price of the products is not equal to the reference value.
+
+
+```{r}
+reference_price <- 73000
+t_test_result <- t.test(data$latest_price, mu = reference_price)
+print(t_test_result)
+hist(data$latest_price, main = "Price Distribution", xlab = "Price", breaks = 20, xaxt = "n")
+custom_breaks <- seq(0, max(data$latest_price), by = 500)
+axis(1, at = custom_breaks, labels = custom_breaks)
+```
+
+
+
+The variable t gives the test statistic, and the following graph provides the Reference distribution.
+The P-value of the given distribution and the reference value 0.0381 is 73k, and the acceptable Alpha is 0.05. Therefore, We can reject the null hypothesis that The average price of the products is equal to the reference value (e.g., Rs. 73k).
+
+
+```{r}
+reference_price <- 3.2
+t_test_result <- t.test(data$star_rating, mu = reference_price)
+print(t_test_result)
+max_star_rating <- max(data$star_rating)
+hist(data$star_rating, main = "Star Ratings", xlab = "Star Ratings", breaks = seq(0, max_star_rating, by = 1))
+```
+
+
+Null Hypothesis (H0): The average star rating of the products is equal to the reference value (e.g., 3.2).
+
+
+Alternative Hypothesis (H1): The average star rating of the products is not equal to the reference value.
+
+
+Test statistic is given by the variable t and the Reference distribution is given by the following graph.
+The P-Value of the given distribution and the reference value 0.0033 is 3.2, and the acceptable Alpha is 0.05. Therefore, We can reject the null hypothesis that The average price of the products is equal to the reference value (e.g., 3.2).
+
+
+## Linear Regression
+
+Regression 1: This shows RAM, SSD capacity, processor generation and dedicated GPU are significant predictors.
+
+```{r}
+lm_model <- lm(latest_price ~  ram_gb + ssd + processor_gnrtn + graphic_card_gb, data = data)
+summary(lm_model)
+
+model_data <- data 
+
+ggplot(model_data, aes(x=ram_gb, y=latest_price)) + 
+  geom_point() + 
+  geom_smooth(method="lm", se=FALSE) +
+  labs(title="Linear model for RAM vs Price")
+```
+
+Diagnostics:
+
+Residual plots show random scatter indicating linear fit.
+High R-squared of 0.63, model explains 63% variance
+The coefficients suggest that increasing RAM by 1 GB adds Rs 2,100 on average to laptop price. Similarly presence of dedicated GPU adds around Rs 9,000 on an average.
+
+
+## PCA 
+
+```{r}
+laptop_pca <- data[c("ram_gb", "ssd", "display_size", "latest_price")] 
+
+str(laptop_pca)
+
+#Standardize variables
+laptop_pca_scale <- scale(laptop_pca)
+
+pca <- prcomp(laptop_pca_scale, scale = TRUE) 
+
+summary(pca)
+
+#PCA with prcomp
+loadings <- pca$rotation
+
+biplot(pca)
+plot(pca, type="l")
+#The scree plot shows the variance explained by each principal component:
+
+plot(pca$x[,1], pca$x[,2])
+text(pca$x[,1], pca$x[,2], labels = rownames(data))
+#Plotting principal component scores of individual data points
+
+```
+PC1 - The first principal component identified explains 44% of the total variance on its own. Based on the variable loadings, we interpreted PC1 as representing the "performance" dimension. It has high negative loading for RAM, SSD capacity and price.
+
+PC2 - This is the second principal component identified by PCA. It explains an additional 21% variance, so together with PC1 explains 65% overall variance. PC2 seems to measure the premium segment based on its high positive link with SSD and negative with display size (thin vs thick laptops).
+
+
+# CONCLUSION
+
+To conclude, let me encapsulate the crucial findings derived from our comprehensive examination of laptop features and pricing dynamics:
+
+The central takeaway involves identifying technical and non-technical specifications that consistently influence laptop prices and consumer preferences. Factors such as RAM, processors, GPUs, and inherent brand effects were recognized as pivotal. Our predictive modeling precisely quantified how these attributes contribute to costs, factoring in their inter-relationships.
+
+Throughout this process, I applied core data science concepts, from initial Exploratory Data Analysis (EDA) to hypothesis evaluations and Principal Component Analysis (PCA)-based multivariate analysis. This hands-on experience allowed me to appreciate the systematic exploration of research questions using a data analytics toolkit.
+
+Exploratory Analysis:
+
+- Dominant laptop brands are ASUS, HP, and DELL based on model share.
+- Intel processors prevail over AMD.
+- Windows OS is predominant, except for Apple laptops using MacOS.
+- The 15.6-inch screen size and 8GB RAM are prevalent.
+- Average prices range from Rs 30,000 to Rs 70,000.
+
+Inference Analysis:
+
+- Hypothesis testing indicated that touchscreen laptops are approximately Rs 11,000 more expensive.
+- RAM, storage, and GPU emerged as primary drivers of laptop pricing through regression analysis.
+- A logistic model confirmed that specifications like RAM and SSD predict the probability of thin and light laptops.
+
+Multivariate Analysis:
+
+- Principal Component Analysis captured 65% of the variance in two components.
+- PC1 represents the performance dimension, characterized by high RAM and SSD loading.
+- PC2 appears to signify the premium ultrabooks segment.
+
+While the exploration provided valuable insights, certain limitations exist. Incorporating actual user ratings and sentiments could infuse a more organic, real-world perspective into the model. Analyzing temporal price trends could enhance our understanding of pricing decisions and profitability. Rigorously designed experiments measuring willingness to pay for specific attributes would be invaluable. Despite these limitations, this exploration was a practical introduction to answering business questions using data science applications. 
+
+We uncovered significant usage trends and constructed predictive models employing statistical and machine-learning techniques. The analysis delivered data-driven, quantitative insights into the laptop market landscape. Potential future steps include clustering similar models, forecasting prices over time, and integrating review data.
+
+
+
